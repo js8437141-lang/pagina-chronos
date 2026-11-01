@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/:modo/:comercio/:extra", "destination": "/api/go?modo=:modo&comercio=:comercio&extra=:extra" },
+    { "source": "/:modo/:comercio", "destination": "/api/go?modo=:modo&comercio=:comercio" }
+  ]
+}
