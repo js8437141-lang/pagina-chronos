@@ -34,10 +34,19 @@ module.exports = async (req, res) => {
     return res.status(500).send("No se pudo leer el enlace de la hoja Link");
   }
 
-  // /pase/{parametro}  ->  ?pase={parametro}&lic={parametro}
-  // /pase/{token}/{licencia}  ->  ?pase={token}&lic={licencia}   (cuando el token y la licencia son distintos)
+  // /pase/{token}  ->  ?pase={token}&lic={licencia encontrada por el token}
+  // /pase/{token}/{licencia}  ->  ?pase={token}&lic={licencia}   (si ya se conoce la licencia)
+  // Si viene solo el token, el Apps Script busca a qué licencia pertenece (columna D de eventos_data).
   if (modo === "pase") {
-    const lic = extra || comercio;
+    let lic = extra;
+    if (!lic) {
+      lic = comercio; // si no se puede resolver, se usa el parámetro tal cual
+      try {
+        const r = await fetch(`${BASE}?resolverpase=${encodeURIComponent(comercio)}&key=${encodeURIComponent(CLAVE)}`, { redirect: "follow" });
+        const t = (await r.text()).trim();
+        if (t && !t.startsWith("<")) lic = t;
+      } catch (err) {}
+    }
     return res.redirect(302, `${BASE}?pase=${encodeURIComponent(comercio)}&lic=${encodeURIComponent(lic)}`);
   }
 
